@@ -94,7 +94,7 @@ def process_obs(obs):
                     nth_door += 1
     D_POS_search_end = True
 
-    # door info(opened_door(bitmap), locked_door(detailed_info))
+    # door info(bitmap, detailed_info)
     rd_open = False; gd_open = False; bd_open = False
     rd_close = False; gd_close = False; bd_close = False
     nth_door = 0
@@ -142,89 +142,7 @@ def process_obs(obs):
     past_obs_p = obs_p
     past_front = front
     return obs_p, front, rd_open, gd_open, bd_open, rd_close, gd_close, bd_close, terminate, terminate
-"""
-def process_obs(obs):
-    return process_obs_upgrade(obs)
-    global D_POS_search_end #, door_check_red, door_check_blue, door_check_green
-    #obs = obs[0]
-    px = 0; py = 0; pd = 0; k = 0
-    rd_open = False; gd_open = False; bd_open = False
-    rd_close = False; gd_close = False; bd_close = False
-    door_state = 0
-    nth_door = 0
-    current_door_check_red = 0
-    current_door_check_green = 0
-    current_door_check_blue = 0
-    terminate = False
-    for y in range(26):
-        for x in range(26):
-            # character info(x,y,dir)
-            if obs[y][x][0] == "A":
-                px = x; py = y
-                if obs[y][x][1] == "L": pd = 0 # L
-                elif obs[y][x][1] == "R": pd = 1 # R
-                elif obs[y][x][1] == "U": pd = 2 # U
-                elif obs[y][x][1] == "D": pd = 3 # D
-            # key info (do I have key?)
-            elif obs[y][x][0] == "K": # 9 => 5
-                if obs[y][x][1] == "R": # 5 => 1
-                    k += 4
-                elif obs[y][x][1] == "G": # 6 => 2
-                    k += 3
-                elif obs[y][x][1] == "B": # 7 => 3
-                    k += 2
-            elif D_POS_search_end == False:
-                if obs[y][x][0] == "D":
-                    if obs[y][x][1] == "R": door_check_red += 1
-                    elif obs[y][x][1] == "G": door_check_green += 1
-                    elif obs[y][x][1] == "B": door_check_blue += 1
-                    D_POS[nth_door] = [y, x]
-                    nth_door += 1
-    D_POS_search_end = True
-    # door info(opened_door(bitmap), locked_door(detailed_info))
-    nth_door = 0
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (0, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
-    for idx in range(5):        
-        target = obs[D_POS[idx][0]][D_POS[idx][1]]
-        temp = 1
-        if target[0] == "D":
-            if target[1] == "R":current_door_check_red += 1
-            elif target[1] == "G":current_door_check_green += 1
-            elif target[1] == "B":current_door_check_blue += 1
-            if target[2] == "L" or target[2] == "C":
-                temp = 0
-                if target[1] == "R": 
-                    rd_open = rd_open | False
-                    rd_close = True
-                elif target[1] == "G": 
-                    gd_open = gd_open | False
-                    gd_close = True
-                elif target[1] == "B": 
-                    bd_open = bd_open | False
-                    bd_close = True
-            elif target[2] == "O":
-                if target[1] == "R": rd_open = True
-                elif target[1] == "G": gd_open = True
-                elif target[1] == "B": bd_open = True
-        for dy, dx in directions:
-            new_target = obs[D_POS[idx][0] + dy][D_POS[idx][1] + dx]
-            if new_target[0] == "K":
-                print("way blocked")
-                terminate = True
-        door_state |= temp << nth_door
-        nth_door += 1
-    k -= 4
-    if current_door_check_red != door_check_red:
-        rd_open = True
-    if current_door_check_green != door_check_green:
-        gd_open = True
-    if current_door_check_blue != door_check_blue:
-        bd_open = True
 
-    obs_p = np.array([py, px, pd, k, door_state]) 
-    next_y, next_x = footstep(obs_p)
-    return obs_p, obs[next_y][next_x], rd_open, gd_open, bd_open, rd_close, gd_close, bd_close, terminate, terminate
-"""
 def reset_stats():
     global bfs_result, D_POS, D_NAME, DIRECTIONS, D_POS_search_end, py, px, pd, k, past_obs_p, past_front
 
@@ -240,10 +158,11 @@ def reset_stats():
     past_obs_p = np.array([py, px, pd, k, 0])
     past_front = "E"
     bfs_result = 0
-# ACTION_SPACE = [ACTION_LEFT, ACTION_RIGHT, ACTION_FORWARD, ACTION_PICKUP, ACTION_DROP, ACTION_UNLOCK]
+
 def obs_equal(obs1, obs2):
     return np.array_equal(obs1[0], obs2[0]) and obs1[1:] == obs2[1:]
 
+# ACTION_SPACE = [ACTION_LEFT, ACTION_RIGHT, ACTION_FORWARD, ACTION_PICKUP, ACTION_DROP, ACTION_UNLOCK]
 def get_reward(obs, action, next_obs, origin_obs_second, origin_obs_third):
     global bfs_result
     terminate = False
@@ -266,7 +185,6 @@ def get_reward(obs, action, next_obs, origin_obs_second, origin_obs_third):
     # move backward
     elif bfs_result > bfs_result_current:
         reward = -20 * (bfs_result - bfs_result_current)
-    # normal footstep
     #else: reward = (bfs_result_current - bfs_result) * 2 
     bfs_result = bfs_result_current
     # heading to wall or door
@@ -322,20 +240,16 @@ def get_reward(obs, action, next_obs, origin_obs_second, origin_obs_third):
             stupid = True
             terminate = True
         # I had RK, and any RD has been unlocked
-        elif obs_p[3] == 1 and next_obs_rd_open == True:
-            reward -= 200
+        elif obs_p[3] == 1 and next_obs_rd_open == True: reward -= 200
         # I had GK, and any GD has been unlocked
-        elif obs_p[3] == 2 and next_obs_gd_open == True:
-            reward += 200
+        elif obs_p[3] == 2 and next_obs_gd_open == True: reward += 200
         # I had BK, and any BD has been unlocked
-        elif obs_p[3] == 3 and next_obs_bd_open == True:
-            reward += 200
+        elif obs_p[3] == 3 and next_obs_bd_open == True: reward += 200
         else : # useful key drop
             print("key drop")
             stupid = True
             # if I had any key, reset
-            if obs_p[3] != 0:
-                terminate = True
+            if obs_p[3] != 0: terminate = True
     # door interaction
     elif action == 5:
         # I locked door, reset
@@ -361,7 +275,8 @@ def get_reward(obs, action, next_obs, origin_obs_second, origin_obs_third):
         terminate = True
         stupid = True
         print("LAVA!")
-    if origin_obs_third: # too many actions
+    # too many actions
+    if origin_obs_third: 
         terminate = True
     #if obs_equal(obs, next_obs) and stupid == False: print(obs_p, action)
     return np.clip(float(reward)/500.0, -1.0, 1.0), terminate, stupid
