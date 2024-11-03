@@ -67,7 +67,6 @@ bfs_result = 0
 def process_obs(obs):
     global D_POS, D_NAME, D_POS_search_end, py, px, pd, k, past_obs_p, past_front
     # character info(x,y,dir)
-    find_A = False
     for y, x in DIRECTIONS:
         if obs[py + y][px + x][0] == "A":
             px += x; py += y
@@ -75,11 +74,7 @@ def process_obs(obs):
             elif obs[py][px][1] == "R": pd = 1 # R
             elif obs[py][px][1] == "U": pd = 2 # U
             elif obs[py][px][1] == "D": pd = 3 # D
-            find_A = True
             break
-    if find_A == False:
-        reset_stats()
-        return past_obs_p, past_front, False, False, False, True, True, True, False, False
 
     # initial door pos. search
     nth_door = 0
