@@ -13,25 +13,16 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
     def act(self, state):
         pass
     def fit(self, state):
-        '''
-        Return value is one of actions following:
-        - GridSurvivorAgent.ACTION_LEFT
-        - GridSurvivorAgent.ACTION_RIGHT
-        - GridSurvivorAgent.ACTION_FORWARD
-        '''
         pass
+
     def save(self):
         self.agent.save()
     def load(self):
         self.agent.load()
 
     def train():
-        '''
-        Below is to create the grid adventure environment.
-        '''
-        env = make_grid_survivor(
-            show_screen=True # or, False
-        )
+        pass
+
 
 if __name__ == '__main__':
     #run_manual()
