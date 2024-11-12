@@ -1,18 +1,18 @@
 import random
 import numpy as np
-from utils import process_obs, process_features
+import pickle
+from utils import process_features
 
 
 class Agent:
-    def __init__(self, alpha = 0.2, gamma = 0.99, epsilon = 0.8, decay = 0.999, min_epsilon = 0.2, num_features = 13, possible_actions = 3):
+    def __init__(self, alpha = 0.2, gamma = 0.99, epsilon = 0, decay = 0.9999, min_epsilon = 0.2, num_features = 16, possible_actions = 3):
         """
         alpha = learning rate
         gamma = discount rate
         epsilon = epsilon init value
         decay = epsilon decay rate
         min_epsilon = min epsilon value
-        num_features = features' length
-        possible_actions = actions set length
+        theta = FA parameter
         """
         self.alpha = alpha
         self.gamma = gamma
@@ -20,37 +20,43 @@ class Agent:
         self.decay = decay
         self.min_epsilon = min_epsilon
         self.theta = np.random.uniform(-0.01, 0.01, num_features)
-        self.possible_actions = possible_actions
+        self.possible_actions = list(range(possible_actions))
     def save(self):
-        pass
+        with open('save.pkl', 'wb') as file:
+            pickle.dump({
+                'theta': self.theta,
+                'epsilon': self.epsilon
+            }, file)
     def load(self):
-        pass
+        with open('save.pkl', 'rb') as file:
+            data = pickle.load(file)
+            self.theta = data['theta']
+            self.epsilon = data['epsilon']
 
     def compute_q(self, features):
-        """
-        calculate Qvalues
-        """
         return np.dot(self.theta, features)
+    def compute_all_q(self, obs):
+        return np.array([self.compute_q(process_features(obs, a)) for a in self.possible_actions])
 
-    def choose_action_while_train(self, state):
-        """
-        using epsilon-greedy to explorate
-        """
+    def choose_action_while_train(self, obs):
         if random.random() < self.epsilon:
             return np.random.choice(self.possible_actions)
         else:
-            features = np.array([process_features(state, a) for a in self.possible_actions])
-            q_values = self.compute_q(features)
-            return np.argmax(q_values)
+            return self.choose_action(obs)
         
-    def choose_action(self, state):
-        """
-        deterministic action selection
-        """
-        pass
+    def choose_action(self, obs):
+        q_values = self.compute_all_q(obs)
+        chosen_index = np.argmax(q_values)
+        return self.possible_actions[chosen_index]
 
-    def update(self, features, td_error):
-        """
-        update theta
-        """
+    def update(self, obs, action, reward, next_obs, done):
+        features = process_features(obs, action)
+        q = self.compute_q(features)
+        q_next = 0
+        if not done:
+            q_next = max(self.compute_all_q(next_obs))
+
+        td_error = reward + self.gamma * q_next - q
+        
         self.theta += self.alpha * td_error * features
+        self.epsilon = max(self.min_epsilon, self.epsilon * self.decay)
