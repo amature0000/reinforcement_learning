@@ -2,6 +2,7 @@ import random
 import numpy as np
 import pickle
 from utils import process_features
+from state import State
 
 
 class Agent:
@@ -35,26 +36,27 @@ class Agent:
 
     def compute_q(self, features):
         return np.dot(self.theta, features)
-    def compute_all_q(self, obs):
-        return np.array([self.compute_q(process_features(obs, a)) for a in self.possible_actions])
+    def compute_future_q(self, state):
+        return np.array([self.compute_q(process_features(state, a)) for a in self.possible_actions])
 
     def choose_action_while_train(self, obs):
         if random.random() < self.epsilon:
             return np.random.choice(self.possible_actions)
         else:
             return self.choose_action(obs)
-        
     def choose_action(self, obs):
-        q_values = self.compute_all_q(obs)
+        state = State()
+        state.process_state(obs)
+        q_values = self.compute_future_q(state)
         chosen_index = np.argmax(q_values)
         return self.possible_actions[chosen_index]
 
-    def update(self, obs, action, reward, next_obs, done):
-        features = process_features(obs, action)
+    def update(self, state, action, reward, next_state, done):
+        features = process_features(state, action)
         q = self.compute_q(features)
         q_next = 0
         if not done:
-            q_next = max(self.compute_all_q(next_obs))
+            q_next = max(self.compute_future_q(next_state))
 
         td_error = reward + self.gamma * q_next - q
         
