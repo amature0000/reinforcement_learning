@@ -1,18 +1,19 @@
 from knu_rl_env.grid_survivor import GridSurvivorAgent, make_grid_survivor, evaluate, run_manual
 from agent import Agent
 from state import State
-import numpy as np
 
 SC = True
 
 class GridSurvivorRLAgent(GridSurvivorAgent):
     def __init__(self):
         self.agent = Agent()
+        self.state = State()
 
     def act(self, obs):
-        return self.agent.choose_action(obs)
-    def fit(self, obs):
-        return self.agent.choose_action_while_train(obs)
+        self.state.process_state(obs)
+        return self.agent.choose_action(self.state)
+    def test(self):
+        return self.agent.choose_action_while_train(self.state)
 
     def save(self):
         self.agent.save()
@@ -22,33 +23,26 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
         print("load")
 
     def train(self):
-        cur_ep = 0
-        cur_step = 0
-        state = State()
+        episode = 0
         next_state = State()
         env = make_grid_survivor(show_screen=SC)
         # obs: 2-dim map, hit_points(hp)
         while True:
-            cur_ep += 1
-            print(f"{cur_ep=}")
-            state.reset()
+            episode += 1
+            print(f"{episode=}")
+            self.state.reset()
             next_state.reset()
-            self.agent.reset_state()
             obs, _ = env.reset()
             while True:
-                cur_step += 1
+                self.state.process_state(obs)
+                action = self.test()
 
-                state.process_state(obs)
-                action = self.fit(obs)
-
-                next_obs, _, terminated, truncated, _ = env.step(action)
-                next_state.process_state(next_obs)
+                obs, _, terminated, truncated, _ = env.step(action)
+                next_state.process_state(obs)
                 done = terminated or truncated
 
-                self.agent.update(state, action, next_state, done)
-
+                self.agent.update(self.state, action, next_state, done)
                 if done: break
-                obs = next_obs
             self.agent.save()
 
 if __name__ == '__main__':
@@ -56,4 +50,4 @@ if __name__ == '__main__':
     agent = GridSurvivorRLAgent()
     #agent.load()
     agent.train()
-    evaluate(agent)
+    #evaluate(agent)

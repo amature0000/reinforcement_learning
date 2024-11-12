@@ -21,10 +21,7 @@ class Agent:
         self.min_epsilon = min_epsilon
         self.theta = np.random.uniform(-0.01, 0.01, num_features)
         self.possible_actions = list(range(possible_actions))
-        self.state = State()
 
-    def reset_state(self):
-        self.state.reset()
     def save(self):
         with open('save.pkl', 'wb') as file:
             pickle.dump({
@@ -42,26 +39,21 @@ class Agent:
     def compute_future_q(self, state:State):
         return np.array([self.compute_q(state.process_features(state, a)) for a in self.possible_actions])
 
-    def choose_action_while_train(self, obs):
+    def choose_action_while_train(self, state):
         if random.random() < self.epsilon:
             return np.random.choice(self.possible_actions)
         else:
-            return self.choose_action(obs)
-    def choose_action(self, obs):
-        self.state.process_state(obs)
-        q_values = self.compute_future_q(self.state)
-        chosen_index = np.argmax(q_values)
-        return self.possible_actions[chosen_index]
+            return self.choose_action(state)
+    def choose_action(self, state):
+        q_values = self.compute_future_q(state)
+        return np.argmax(q_values)
 
     def update(self, state:State, action, next_state:State, done):
         features = state.process_features(state, action)
         reward = next_state.process_reward(done)
-        q = self.compute_q(features)
-        q_next = 0
-        if not done:
-            q_next = max(self.compute_future_q(next_state))
+        q_next = 0 if done else max(self.compute_future_q(next_state))
 
-        td_error = reward + self.gamma * q_next - q
+        td_error = reward + self.gamma * q_next - self.compute_q(features)
         
         self.theta += self.alpha * td_error * features
         self.epsilon = max(self.min_epsilon, self.epsilon * self.decay)
