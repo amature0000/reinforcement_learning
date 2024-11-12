@@ -1,4 +1,5 @@
 from knu_rl_env.grid_survivor import GridSurvivorAgent, make_grid_survivor, evaluate, run_manual
+import copy
 from agent import Agent
 from state import State
 
@@ -33,16 +34,18 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
             self.state.reset()
             next_state.reset()
             obs, _ = env.reset()
+            self.state.process_state(obs)
             while True:
-                self.state.process_state(obs)
                 action = self.test()
-
                 obs, _, terminated, truncated, _ = env.step(action)
+
                 next_state.process_state(obs)
+                reward = next_state.process_reward(terminated)
                 done = terminated or truncated
 
-                self.agent.update(self.state, action, next_state, done)
+                self.agent.update(self.state, action, reward, next_state, done)
                 if done: break
+                self.state = copy.deepcopy(next_state)
             self.agent.save()
 
 if __name__ == '__main__':

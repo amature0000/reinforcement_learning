@@ -37,7 +37,7 @@ class Agent:
     def compute_q(self, features):
         return np.dot(self.theta, features)
     def compute_future_q(self, state:State):
-        return np.array([self.compute_q(state.process_features(state, a)) for a in self.possible_actions])
+        return np.array([self.compute_q(state.process_features(a)) for a in self.possible_actions])
 
     def choose_action_while_train(self, state):
         if random.random() < self.epsilon:
@@ -48,9 +48,8 @@ class Agent:
         q_values = self.compute_future_q(state)
         return np.argmax(q_values)
 
-    def update(self, state:State, action, next_state:State, done):
-        features = state.process_features(state, action)
-        reward = next_state.process_reward(done)
+    def update(self, state:State, action, reward, next_state, done):
+        features = state.process_features(action)
         q_next = 0 if done else max(self.compute_future_q(next_state))
 
         td_error = reward + self.gamma * q_next - self.compute_q(features)

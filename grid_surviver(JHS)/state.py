@@ -29,10 +29,12 @@ class State:
 
     def process_reward(self, terminated):
         # touched all honeybee
-        if self.bdir == None: return 1
+        if self.bdir == 0: return 1
         # dead
         if terminated: return -1
         # touched honeybee
+        # TODO: implementation
+        # no state changed
         # TODO: implementation
         # basic movement
         return -0.01
@@ -53,6 +55,8 @@ class State:
                 break
         # get the nearest objects
         tpos, tdir = self.bfs(obs)
+        print(tpos)
+        print(tdir)
         self.by, self.bx = tpos['B']
         self.ky, self.kx = tpos['K']
         self.hy, self.hx = tpos['H']
@@ -102,17 +106,17 @@ class State:
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
         start_x, start_y = self.px, self.py
-        queue.append((start_x, start_y, 0))
+        queue.append((start_y, start_x, 0))
         visited = [[False for _ in range(cols)] for _ in range(rows)]
         visited[start_y][start_x] = True
 
         targets = {'B', 'H', 'K'}
-        target_position = {'B': (None, None), 'H': (None, None), 'K': (None, None)}
-        target_distance = {'B': None, 'H': None, 'K': None}
+        target_position = {'B': (start_y, start_x), 'H': (start_y, start_x), 'K': (start_y, start_x)}
+        target_distance = {'B': 0, 'H': 0, 'K': 0}
         target_found = {'B': False, 'H': False, 'K': False}
 
         while queue:
-            current_x, current_y, distance = queue.popleft()
+            current_y, current_x, distance = queue.popleft()
             # current block check
             for key in targets:
                 if map[current_y][current_x][0] == key and not target_found[key]:
@@ -124,11 +128,11 @@ class State:
                     if all(target_found.values()):
                         return target_position, target_distance
             # search
-            for dx, dy in directions:
+            for dy, dx in directions:
                 nx, ny = current_x + dx, current_y + dy
                 if 0 <= nx < cols and 0 <= ny < rows:
                     if not visited[ny][nx] and map[ny][nx] != 'W':
                         visited[ny][nx] = True
-                        queue.append((nx, ny, distance + 1))
+                        queue.append((ny, nx, distance + 1))
 
         return target_position, target_distance
