@@ -1,6 +1,5 @@
 from knu_rl_env.grid_survivor import GridSurvivorAgent, make_grid_survivor, evaluate, run_manual
 from agent import Agent
-from utils import process_reward
 from state import State
 import numpy as np
 
@@ -44,10 +43,9 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
 
                 next_obs, _, terminated, truncated, _ = env.step(action)
                 next_state.process_state(next_obs)
-                reward = process_reward(next_state, terminated)
                 done = terminated or truncated
 
-                self.agent.update(state, action, reward, next_state, done)
+                self.agent.update(state, action, next_state, done)
 
                 if done: break
                 obs = next_obs

@@ -1,6 +1,7 @@
 from collections import deque
+import numpy as np
 
-MAX_COR = 33.0
+MAX_COR = 34.0
 MAX_DIR = 3.0
 MAX_FAR = 10.0
 L = 0
@@ -26,6 +27,16 @@ class State:
     def reset(self):
         self.__init__()
 
+    def process_reward(self, terminated):
+        # touched all honeybee
+        if self.bdir == None: return 1
+        # dead
+        if terminated: return -1
+        # touched honeybee
+        # TODO: implementation
+        # basic movement
+        return -0.01
+
     def process_state(self, obs_before_process):
         obs = obs_before_process['grid']
         # get hp
@@ -48,12 +59,46 @@ class State:
         self.bdir = tdir['B']
         self.kdir = tdir['K']
         self.hdir = tdir['H']
+    
+    def process_features(self, action):
+        # 16 features(px, py, pd, kx, ky, hx, hy, bx, by, kdir, hdir, bdir, hp, a1, a2, a3)
+        features = []
+        # coord incode
+        features.append(self.px / MAX_COR)
+        features.append(self.py / MAX_COR)
+        features.append(self.pd / MAX_DIR)
+        
+        # killerbee incode
+        features.append(self.kx / MAX_COR)
+        features.append(self.ky / MAX_COR)
+
+        # hornet incode
+        features.append(self.hx / MAX_COR)
+        features.append(self.hy / MAX_COR)
+        
+        # honeybee incode
+        features.append(self.bx / MAX_COR)
+        features.append(self.by / MAX_COR)
+
+        # dir incode
+        features.append(1 - min(self.kdir / MAX_FAR, 1))
+        features.append(1 - min(self.hdir / MAX_FAR, 1))
+        features.append(1 - min(self.bdir / MAX_FAR, 1))
+        
+        # hp incode
+        features.append(self.hp) # 1 if hp > 10, else 0
+
+        # action incode
+        for i in range(3):
+            features.append(1.0 if i == action else 0.0)
+
+        return np.array(features)
 
     # bfs algorithm to find the nearest objects' information
     def bfs(self, map):
         queue = deque()
-        rows = int(MAX_COR) + 1
-        cols = int(MAX_COR) + 1
+        rows = int(MAX_COR)
+        cols = int(MAX_COR)
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
         start_x, start_y = self.px, self.py
