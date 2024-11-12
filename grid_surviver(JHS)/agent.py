@@ -22,6 +22,10 @@ class Agent:
         self.min_epsilon = min_epsilon
         self.theta = np.random.uniform(-0.01, 0.01, num_features)
         self.possible_actions = list(range(possible_actions))
+        self.state = State()
+
+    def reset_state(self):
+        self.state.reset()
     def save(self):
         with open('save.pkl', 'wb') as file:
             pickle.dump({
@@ -45,9 +49,8 @@ class Agent:
         else:
             return self.choose_action(obs)
     def choose_action(self, obs):
-        state = State()
-        state.process_state(obs)
-        q_values = self.compute_future_q(state)
+        self.state.process_state(obs)
+        q_values = self.compute_future_q(self.state)
         chosen_index = np.argmax(q_values)
         return self.possible_actions[chosen_index]
 

@@ -35,9 +35,9 @@ def process_features(state:State, action):
     features.append(state.by / MAX_COR)
 
     # dir incode
-    features.append(min(state.kdir / MAX_FAR, 1))
-    features.append(min(state.hdir / MAX_FAR, 1))
-    features.append(min(state.bdir / MAX_FAR, 1))
+    features.append(1 - min(state.kdir / MAX_FAR, 1))
+    features.append(1 - min(state.hdir / MAX_FAR, 1))
+    features.append(1 - min(state.bdir / MAX_FAR, 1))
     
     # hp incode
     features.append(state.hp) # 1 if hp > 10, else 0

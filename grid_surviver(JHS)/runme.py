@@ -34,6 +34,7 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
             print(f"{cur_ep=}")
             state.reset()
             next_state.reset()
+            self.agent.reset_state()
             obs, _ = env.reset()
             while True:
                 cur_step += 1
