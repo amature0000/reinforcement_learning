@@ -33,6 +33,7 @@ class DeepQNetwork:
         self.lr = LEARNING_RATE
         self.batch_size = BATCH_SIZE
         self.device = device
+        self.first_hit = True
 
         self.policy_net = DQN().to(device)
         self.target_net = DQN().to(device)
@@ -66,7 +67,9 @@ class DeepQNetwork:
     def learn(self):
         if len(self.memory) < 100000: return # 충분한 버퍼 체크
         if len(self.memory) < self.batch_size: return # 최소한의 버퍼 체크
-        
+        if self.first_hit:
+            print("learning start")
+            self.first_hit = False
         transitions = self.memory.sample(self.batch_size)
         batch = Transition(*zip(*transitions))
         

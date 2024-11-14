@@ -45,7 +45,8 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
                     
                     next_obs, _, terminated, truncated, _ = env.step(action)
                     next_state.process_state(next_obs)
-                    reward = torch.tensor([process_reward(self.state, next_state)], device=self.device)
+                    _reward = process_reward(self.state, next_state)
+                    reward = torch.tensor([_reward], device=self.device)
                     done = terminated or truncated
                     
                     self.agent.store_transition(self.state.input_data, action, reward, next_state.input_data)
@@ -69,6 +70,6 @@ if __name__ == "__main__":
     print(torch.cuda.is_available())
     print(f"사용 중인 장치: {device}")
     agent = GridSurvivorRLAgent()
-    #agent.load()
+    agent.load()
     agent.train()
     #evaluate(agent)
