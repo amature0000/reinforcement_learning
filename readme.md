@@ -12,8 +12,6 @@
 ## Round 3(미공개)
 # Results
 ## Round 1
-![images](etc_files/grid_adventure_result.gif)
 ![images](etc_files/grid_adventure_score.png)
-#### optimal path: 151
 ## Round 2(미공개)
 ## Round 3(미공개)
