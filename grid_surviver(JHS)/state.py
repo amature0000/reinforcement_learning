@@ -56,10 +56,10 @@ class State:
 def process_reward(state:State, next_state:State):
     # touched honeybee = 1.0
     if state.b > next_state.b: return 1.0
-    # damaged = -0.2
-    if state.hp > next_state.hp: return -0.2
     # dead = -1.0
     if state.k > next_state.k: return -1.0
     # dead = -1.0
     if next_state.hp < 10 : return -1.0
-    return 0.0
+    # damaged = -0.2
+    if state.hp > next_state.hp: return -0.2
+    return -0.001

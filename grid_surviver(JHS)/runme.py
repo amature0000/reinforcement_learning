@@ -24,36 +24,34 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
         print(f"save")
 
     def load(self):
-        self.agent.epsilon_min = 0.0
-        self.agent.epsilon = 0.0
         self.agent.policy_net.load_state_dict(torch.load("save.pth"))
     
     def train(self):
         current_episode = 0
         env = make_grid_survivor(show_screen=SC)
         next_state = State()
+        total_step = 0
         try:
             while True:
                 current_step = 0
-                current_episode += 1
-                print(f"{current_episode=}")
                 obs, _ = env.reset()
-
+                print(f"{current_episode=}, {total_step=}")
                 while True:
                     current_step += 1
                     action = self.test(obs)
                     
                     next_obs, _, terminated, truncated, _ = env.step(action)
                     next_state.process_state(next_obs)
-                    _reward = process_reward(self.state, next_state)
-                    reward = torch.tensor([_reward], device=self.device)
+                    reward = torch.tensor([process_reward(self.state, next_state)], device=self.device)
                     done = terminated or truncated
-                    
-                    self.agent.store_transition(self.state.input_data, action, reward, next_state.input_data)
+                    # terminated가 True라면 state에서 action을 취했을 때 terminal state로 진입했음을 의미한다.
+                    self.agent.store_transition(self.state.input_data, torch.tensor([[action]]), reward, next_state.input_data, done)
 
                     if current_step % 10 == 0: self.agent.learn()
                     if done: break
                     obs = next_obs
+                current_episode += 1
+                total_step += current_step
                 self.save()
         except KeyboardInterrupt:
             print("Ctrl-C -> Exit")
@@ -64,11 +62,11 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
 
 # Main
 if __name__ == "__main__":
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(torch.__version__)
     print(torch.version.cuda)
     print(torch.cuda.is_available())
-    print(f"사용 중인 장치: {device}")
+    print(f"사용 중인 장치: {DEVICE}")
+    # ===========================
     agent = GridSurvivorRLAgent()
     agent.load()
     agent.train()
