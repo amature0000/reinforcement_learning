@@ -1,13 +1,2 @@
-파일 설명
-agent.py: action을 선택하는 에이전트 클래스 
-state.py: parameters들을 관리하는 클래스
-runme.py: 실행파일
-save.pkl: 학습한 가중치
-
-환경 설정
-$ pip install knu-rl-env==1.6
-
-실행 방법
-$ python runme.py
-
-실행 결과
+가망없는 이유:
+x(S)로 상태를 가공한 feature를 넣어야 하는데, 좌표값을 feature로 가공할 아이디어가 없음.
