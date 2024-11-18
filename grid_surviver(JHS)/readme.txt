@@ -14,5 +14,4 @@ $ python runme.py
 메인 함수 내부 코드를 적절히 수정하여 train, load, evaluate를 진행할 수 있습니다.
 
 실행 로그
-1. train 과정에서 현재 iteration, step, epsilon 값을 알 수 있습니다.
-2. deterministic decision 시 Q values가 출력됩니다.(색칠된 값이 maximum)
+agent.py -> choose_action() 내부 주석으로 Q values를 출력할 수 있습니다.
