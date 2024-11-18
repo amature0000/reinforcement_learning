@@ -46,7 +46,7 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
                     reward = torch.tensor([_reward], device=self.device)
                     done = terminated or truncated
                     done_store = done
-                    if _reward == -10.0: done_store = True
+                    if _reward == -10.0: done_store = True # 벽에 박으면 future reward를 0으로 설정한다.
                     self.agent.store_transition(self.state.features(), action, reward, next_state.features(), done_store)
                     if done: break
                     obs = next_obs

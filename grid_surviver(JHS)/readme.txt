@@ -6,8 +6,7 @@ requirements.txt : 과제 공지에 명시된 방법에 의거한 requirements.t
 
 환경 설정
 필수 설치 패키지: knu-rl-env 및 torch
-requirements.txt 파일은 과제 규칙에 의거하여 첨부된 파일입니다. 
-로컬 환경에 맞는 torch를 설치하는 것이 적절합니다.
+requirements.txt 파일은 과제 규칙에 의거하여 첨부된 파일입니다.
 
 실행 방법
 $ python runme.py

@@ -49,7 +49,7 @@ class DeepQNetwork:
     def choose_action_while_train(self, features):
         #temp = self.choose_action(features)
         if random.random() < self.epsilon: return random.randint(0, 2)
-        return self.choose_action(features)
+        return self.choose_action(features) # replace temp to track all Q-values
     # greedy
     def choose_action(self, features):
         state = torch.tensor(features, dtype=torch.float32).to(self.device).unsqueeze(0)
