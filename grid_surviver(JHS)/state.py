@@ -42,12 +42,18 @@ class State:
         self.h = h_cnt
         self.k = k_cnt
         # bfs
+        """
         location, distance = beefs(self.py, self.px, char_map)
         self.b_dist = distance['B']
         self.by, self.bx = location['B']
         self.hy, self.hx = location['H']
         self.ky, self.kx = location['K']
+        """
+        self.by, self.bx, self.b_dist = beefs(self.py, self.px, 'B',char_map)
+        self.hy, self.hx, self.h_dist = beefs(self.py, self.px, 'H',char_map)
+        self.ky, self.kx, self.k_dist = beefs(self.py, self.px, 'K',char_map)
     def features(self):
+        # coordinate 8 + onehot_dir 4 + nearby blocks onehot 5*4 = 32
         normalized_py = self.py / (MAX_COR - 1)
         normalized_px = self.px / (MAX_COR - 1)
         normalized_by = self.by / (MAX_COR - 1)
@@ -89,14 +95,15 @@ def process_reward(state:State, next_state:State):
     # dead = -1.0
     if next_state.hp < 10 : return -10.0
     # damaged = -0.2
-    if state.hp > next_state.hp: return -2.0
+    if state.hp > next_state.hp: return -1.5
     # no movement = -1.0
     if state.px == next_state.px and state.py == next_state.py and state.pd == next_state.pd: return -10.0
-    # bfs based reward(normal:-.02, backward:-.2, forward:+.2)
+    # getting closer to B
     if state.b_dist > next_state.b_dist: return 0.2
-    if state.b_dist < next_state.b_dist: return -0.2
-    return -0.01
-
+    # or run away from K
+    if state.k_dist < next_state.k_dist: return 0.05
+    return 0
+"""
 def beefs(start_y, start_x, map):
     queue = deque()
     rows = int(MAX_COR)
@@ -127,8 +134,35 @@ def beefs(start_y, start_x, map):
         for dy, dx in directions:
             nx, ny = current_x + dx, current_y + dy
             if 0 <= nx < cols and 0 <= ny < rows:
-                if not visited[ny][nx] and map[ny][nx] != 'W':
+                if not visited[ny][nx] and map[ny][nx] == 'E':
                     visited[ny][nx] = True
                     queue.append((ny, nx, distance + 1))
 
     return target_position, target_distance
+"""
+def beefs(start_y, start_x, target, map):
+    queue = deque()
+    rows = int(MAX_COR)
+    cols = int(MAX_COR)
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    queue.append((start_y, start_x, 0))
+    visited = [[False for _ in range(cols)] for _ in range(rows)]
+    visited[start_y][start_x] = True
+
+    target_distance = 0
+
+    while queue:
+        current_y, current_x, distance = queue.popleft()
+        for dy, dx in directions:
+            nx, ny = current_x + dx, current_y + dy
+            # return
+            if map[ny][nx][0] == target:
+                return ny, nx, target_distance + 1
+            # search
+            if 0 <= nx < cols and 0 <= ny < rows:
+                if not visited[ny][nx] and map[ny][nx] == 'E': # every object is considered as a "wall"
+                    visited[ny][nx] = True
+                    queue.append((ny, nx, distance + 1))
+
+    return start_y, start_x, -1

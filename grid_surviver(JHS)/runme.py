@@ -3,7 +3,7 @@ import torch
 from agent import DeepQNetwork
 from state import State, process_reward
 
-SC = True
+SC = False
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class GridSurvivorRLAgent(GridSurvivorAgent):
     def __init__(self):
@@ -27,7 +27,7 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
         print("load")
     
     def train(self):
-        current_episode = 0
+        episode = 0
         env = make_grid_survivor(show_screen=SC)
         next_state = State()
         total_step = 0
@@ -45,14 +45,14 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
                     _reward = process_reward(self.state, next_state)
                     reward = torch.tensor([_reward], device=self.device)
                     done = terminated or truncated
-                    done_store = done
-                    if _reward == -10.0: done_store = True # 벽에 박으면 future reward를 0으로 설정한다.
-                    self.agent.store_transition(self.state.features(), action, reward, next_state.features(), done_store)
+                    temp = done
+                    if _reward == -10.0: temp = True # 벽에 박으면 future reward를 0으로 설정한다.
+                    self.agent.store_transition(self.state.features(), action, reward, next_state.features(), temp)
                     if done: break
                     obs = next_obs
                 max_bee = min(max_bee, next_state.b)
-                print(f"{current_episode=}, {total_step=}, {next_state.b=}, {self.agent.epsilon=:.2f}, {max_bee=}")
-                current_episode += 1
+                print(f"{episode=}, {total_step=}, {current_step=}, {next_state.b=}, {self.agent.epsilon=:.2f}, {max_bee=}")
+                episode += 1
                 total_step += current_step
                 for _ in range(100): self.agent.learn()
                 self.save()
