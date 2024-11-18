@@ -47,12 +47,14 @@ class DeepQNetwork:
                 torch.nn.init.zeros_(m.bias)
     # epsilon
     def choose_action_while_train(self, features):
+        #temp = self.choose_action(features)
         if random.random() < self.epsilon: return random.randint(0, 2)
-        else: return self.choose_action(features)
+        return self.choose_action(features)
     # greedy
     def choose_action(self, features):
         state = torch.tensor(features, dtype=torch.float32).to(self.device).unsqueeze(0)
         q_values = self.policy_net(state)
+        """
         #print(q_values.detach().cpu().numpy(), f"{self.epsilon:.2f}")
         q_value_print = q_values.tolist()
         max_index = q_value_print[0].index(max(q_value_print[0]))
@@ -60,7 +62,7 @@ class DeepQNetwork:
             if i == max_index: print("\033[95m" + f"{q_value_print[0][i]:.3f}" + "\033[0m", end=' ')
             else: print(f"{q_value_print[0][i]:.3f}", end=' ')
         print()
-
+        """
         with torch.no_grad(): return q_values.max(1)[1].item()
 
     def learn(self):
@@ -111,13 +113,15 @@ class DQN(nn.Module):
         self.fc1 = nn.Linear(input_dim, hidden_dim)
         self.fc2 = nn.Linear(hidden_dim, hidden_dim)
         self.fc3 = nn.Linear(hidden_dim, hidden_dim)
-        self.fc4 = nn.Linear(hidden_dim, num_actions)
+        self.fc4 = nn.Linear(hidden_dim, hidden_dim)
+        self.fc5 = nn.Linear(hidden_dim, num_actions)
     
     def forward(self, x):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
-        x = self.fc4(x)
+        x = F.relu(self.fc4(x))
+        x = self.fc5(x)
         return x
     
 Transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state', 'done'))

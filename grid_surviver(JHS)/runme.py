@@ -24,7 +24,6 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
 
     def load(self):
         self.agent.policy_net.load_state_dict(torch.load("save.pth"))
-        self.agent.target_net.load_state_dict(torch.load("save.pth"))
         print("load")
     
     def train(self):
@@ -32,11 +31,11 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
         env = make_grid_survivor(show_screen=SC)
         next_state = State()
         total_step = 0
+        max_bee = 50
         try:
             while True:
                 current_step = 0
                 obs, _ = env.reset()
-                print(f"{current_episode=}, {total_step=}, {self.agent.epsilon=}")
                 while True:
                     current_step += 1
                     action = self.test(obs)
@@ -46,10 +45,13 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
                     _reward = process_reward(self.state, next_state)
                     reward = torch.tensor([_reward], device=self.device)
                     done = terminated or truncated
-                    if _reward == -10.0: done = True
-                    self.agent.store_transition(self.state.features(), action, reward, next_state.features(), done)
+                    done_store = done
+                    if _reward == -10.0: done_store = True
+                    self.agent.store_transition(self.state.features(), action, reward, next_state.features(), done_store)
                     if done: break
                     obs = next_obs
+                max_bee = min(max_bee, next_state.b)
+                print(f"{current_episode=}, {total_step=}, {next_state.b=}, {self.agent.epsilon=:.2f}, {max_bee=}")
                 current_episode += 1
                 total_step += current_step
                 for _ in range(100): self.agent.learn()
@@ -60,6 +62,7 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
             env.render()
             env.close()
             self.save()
+            exit()
 
 # Main
 if __name__ == "__main__":
@@ -69,6 +72,6 @@ if __name__ == "__main__":
     print(f"사용 중인 장치: {DEVICE}")
     # ===========================
     agent = GridSurvivorRLAgent()
-    agent.load()
+    #agent.load()
     agent.train()
     evaluate(agent)
