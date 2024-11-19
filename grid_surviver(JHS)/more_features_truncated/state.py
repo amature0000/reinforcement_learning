@@ -53,7 +53,7 @@ class State:
         self.hy, self.hx, self.h_dist = beefs(self.py, self.px, 'H',char_map)
         self.ky, self.kx, self.k_dist = beefs(self.py, self.px, 'K',char_map)
     def features(self):
-        # coordinate 8 + onehot_dir 4 + nearby blocks onehot 5*4 = 32
+        # coordinate 8 + b_dist 3 + onehot_dir 4 + nearby blocks onehot 5*4 = 35
         normalized_py = self.py / (MAX_COR - 1)
         normalized_px = self.px / (MAX_COR - 1)
         normalized_by = self.by / (MAX_COR - 1)
@@ -62,7 +62,9 @@ class State:
         normalized_hx = self.hx / (MAX_COR - 1)
         normalized_ky = self.ky / (MAX_COR - 1)
         normalized_kx = self.kx / (MAX_COR - 1)
-
+        normalized_bdist = min(self.b_dist / 20, 1)
+        normalized_hdist = min(self.h_dist / 20, 1)
+        normalized_kdist = min(self.k_dist / 20, 1)
         pd_one_hot = np.zeros(4)
         up_one_hot = np.zeros(5)
         down_one_hot = np.zeros(5)
@@ -82,7 +84,10 @@ class State:
             normalized_hy,
             normalized_hx,
             normalized_ky,
-            normalized_kx
+            normalized_kx,
+            normalized_bdist,
+            normalized_hdist,
+            normalized_kdist
         ] + pd_one_hot.tolist() + up_one_hot.tolist() + down_one_hot.tolist() + left_one_hot.tolist() + right_one_hot.tolist()
         return result
 
@@ -141,6 +146,7 @@ def beefs(start_y, start_x, map):
     return target_position, target_distance
 """
 def beefs(start_y, start_x, target, map):
+    if map[start_y][start_x][0] == target: return start_y, start_x, 0
     queue = deque()
     rows = int(MAX_COR)
     cols = int(MAX_COR)
@@ -165,4 +171,4 @@ def beefs(start_y, start_x, target, map):
                     visited[ny][nx] = True
                     queue.append((ny, nx, distance + 1))
 
-    return start_y, start_x, -1
+    return start_y, start_x, 0

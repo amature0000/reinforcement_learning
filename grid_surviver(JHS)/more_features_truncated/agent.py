@@ -108,7 +108,7 @@ class DeepQNetwork:
 
 
 class DQN(nn.Module):
-    def __init__(self, input_dim=32, hidden_dim=128, num_actions=3):
+    def __init__(self, input_dim=35, hidden_dim=128, num_actions=3):
         super(DQN, self).__init__()
         self.fc1 = nn.Linear(input_dim, hidden_dim)
         self.fc2 = nn.Linear(hidden_dim, hidden_dim)

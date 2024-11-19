@@ -1,4 +1,5 @@
-from knu_rl_env.grid_survivor import GridSurvivorAgent, make_grid_survivor, evaluate, run_manual
+#from knu_rl_env.grid_survivor import GridSurvivorAgent, make_grid_survivor, evaluate, run_manual
+from lightgrid import GridSurvivorAgent, make_light_grid_survivor
 import torch
 from agent import DeepQNetwork
 from state import State, process_reward
@@ -28,7 +29,8 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
     
     def train(self):
         episode = 0
-        env = make_grid_survivor(show_screen=SC)
+        #env = make_grid_survivor(show_screen=SC)
+        env = make_light_grid_survivor()
         next_state = State()
         total_step = 0
         max_bee = 50
@@ -42,11 +44,10 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
                     
                     next_obs, _, terminated, truncated, _ = env.step(action)
                     next_state.process_state(next_obs)
-                    _reward = process_reward(self.state, next_state)
-                    reward = torch.tensor([_reward], device=self.device)
+                    reward = process_reward(self.state, next_state)
                     done = terminated or truncated
                     temp = done
-                    if _reward == -10.0: temp = True # 벽에 박으면 future reward를 0으로 설정한다.
+                    if reward == -10.0: temp = True # 벽에 박으면 future reward를 0으로 설정한다.
                     self.agent.store_transition(self.state.features(), action, reward, next_state.features(), temp)
                     if done: break
                     obs = next_obs
