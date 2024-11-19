@@ -10,8 +10,16 @@ np.set_printoptions(precision=3, suppress=True)
 WIDTH = 34
 HEIGHT = 34
 CHANNELS = 8
-
-
+SHOW_SCREEN = False
+def logging(q_values):
+    #print(q_values.detach().cpu().numpy(), f"{self.epsilon:.2f}")
+    q_value_print = q_values.tolist()
+    max_index = q_value_print[0].index(max(q_value_print[0]))
+    for i in range(3):
+        if i == max_index: print("\033[95m" + f"{q_value_print[0][i]:.3f}" + "\033[0m", end=' ')
+        else: print(f"{q_value_print[0][i]:.3f}", end=' ')
+    print()
+    
 class DeepQNetwork:
     def __init__(self, actions=3, epsilon=0.99, decay = 0.99, min_epsilon=0.05, gamma=0.9, lr=0.001, batch_size = 64, update_freq=1000, buffer_size=200000, device='cpu'):
         #self.n_features = n_features
@@ -54,15 +62,7 @@ class DeepQNetwork:
     def choose_action(self, features):
         state = torch.tensor(features, dtype=torch.float32).to(self.device).unsqueeze(0)
         q_values = self.policy_net(state)
-        """
-        #print(q_values.detach().cpu().numpy(), f"{self.epsilon:.2f}")
-        q_value_print = q_values.tolist()
-        max_index = q_value_print[0].index(max(q_value_print[0]))
-        for i in range(3):
-            if i == max_index: print("\033[95m" + f"{q_value_print[0][i]:.3f}" + "\033[0m", end=' ')
-            else: print(f"{q_value_print[0][i]:.3f}", end=' ')
-        print()
-        """
+        if SHOW_SCREEN: logging(q_values)
         with torch.no_grad(): return q_values.max(1)[1].item()
 
     def learn(self):

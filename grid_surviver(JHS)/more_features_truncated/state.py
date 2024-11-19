@@ -2,8 +2,8 @@ from collections import deque
 import numpy as np
 
 L = 0
-R = 1
-U = 2
+U = 1
+R = 2
 D = 3
 MAX_COR = 34
 CHANNELS = 8
@@ -49,9 +49,9 @@ class State:
         self.hy, self.hx = location['H']
         self.ky, self.kx = location['K']
         """
-        self.by, self.bx, self.b_dist = beefs(self.py, self.px, 'B',char_map)
-        self.hy, self.hx, self.h_dist = beefs(self.py, self.px, 'H',char_map)
-        self.ky, self.kx, self.k_dist = beefs(self.py, self.px, 'K',char_map)
+        self.by, self.bx, self.b_dist = beefs(self.py, self.px, self.pd, 'B', char_map)
+        self.hy, self.hx, self.h_dist = beefs(self.py, self.px, self.pd, 'H', char_map)
+        self.ky, self.kx, self.k_dist = beefs(self.py, self.px, self.pd, 'K', char_map)
     def features(self):
         # coordinate 8 + b_dist 3 + onehot_dir 4 + nearby blocks onehot 5*4 = 35
         normalized_py = self.py / (MAX_COR - 1)
@@ -145,6 +145,7 @@ def beefs(start_y, start_x, map):
 
     return target_position, target_distance
 """
+"""
 def beefs(start_y, start_x, target, map):
     if map[start_y][start_x][0] == target: return start_y, start_x, 0
     queue = deque()
@@ -171,4 +172,33 @@ def beefs(start_y, start_x, target, map):
                     visited[ny][nx] = True
                     queue.append((ny, nx, distance + 1))
 
+    return start_y, start_x, 0
+    """
+def beefs(start_y, start_x, dir, target, map):
+    if map[start_y][start_x][0] == target: return start_y, start_x, 0
+    queue = deque()
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    queue.append((start_y, start_x, dir, 0))
+    visited = {}
+
+    while queue:
+        current_y, current_x, current_dir, current_distance = queue.popleft()
+        tempy, tempx = directions[current_dir]
+        tempy += current_y
+        tempx += current_x
+        # boundary check
+        if tempy < MAX_COR and tempx < MAX_COR and tempy > 0 and tempx > 0:
+            # return
+            if map[tempy][tempx][0] == target: return tempy, tempx, current_distance + 1
+            # insert step
+            if ((tempy, tempx, current_dir) not in visited) and map[tempy][tempx][0] == 'E':
+                visited[(tempy, tempx, current_dir)] = True
+                queue.append([tempy, tempx, current_dir, current_distance + 1])
+        # rotate step 1
+        if (current_y, current_x, (current_dir + 1) % 4) not in visited:
+            visited[(current_y, current_x, (current_dir + 1) % 4)] = True
+            queue.append([current_y, current_x, (current_dir + 1) % 4, current_distance + 1])
+        if (current_y, current_x, (current_dir + 3) % 4) not in visited:
+            visited[(current_y, current_x, (current_dir + 3) % 4)] = True
+            queue.append([current_y, current_x, (current_dir + 3) % 4, current_distance + 1])
     return start_y, start_x, 0

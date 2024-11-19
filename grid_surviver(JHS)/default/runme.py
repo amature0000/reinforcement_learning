@@ -73,4 +73,4 @@ if __name__ == "__main__":
     agent = GridSurvivorRLAgent()
     #agent.load()
     agent.train()
-    evaluate(agent)
+    #evaluate(agent)

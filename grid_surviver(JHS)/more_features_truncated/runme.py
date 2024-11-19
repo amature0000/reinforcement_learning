@@ -4,8 +4,9 @@ import torch
 from agent import DeepQNetwork
 from state import State, process_reward
 
-SC = False
+SHOW_SCREEN = False
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 class GridSurvivorRLAgent(GridSurvivorAgent):
     def __init__(self):
         self.agent = DeepQNetwork(device=DEVICE)
@@ -43,6 +44,7 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
                     action = self.test(obs)
                     
                     next_obs, _, terminated, truncated, _ = env.step(action)
+                    #env.render()
                     next_state.process_state(next_obs)
                     reward = process_reward(self.state, next_state)
                     done = terminated or truncated
@@ -75,4 +77,4 @@ if __name__ == "__main__":
     agent = GridSurvivorRLAgent()
     #agent.load()
     agent.train()
-    evaluate(agent)
+    #evaluate(agent)
