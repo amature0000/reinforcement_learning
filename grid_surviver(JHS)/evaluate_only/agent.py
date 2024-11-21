@@ -21,13 +21,10 @@ def logging(q_values):
     print()
     
 class DeepQNetwork:
-    def __init__(self, actions=3, device='cpu'):
-        #self.n_features = n_features
-        self.n_actions = actions
+    def __init__(self, device='cpu'):
         self.device = device
         self.policy_net = DQN().to(device)
 
-    # greedy
     def choose_action(self, features):
         state = torch.tensor(features, dtype=torch.float32).to(self.device).unsqueeze(0)
         q_values = self.policy_net(state)
