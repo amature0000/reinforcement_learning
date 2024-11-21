@@ -44,6 +44,7 @@ class DeepQNetwork:
 
         self.learn_step_counter = 0
         self.target_update = update_freq
+        self.q_values = (0, 0, 0)
 
         self.policy_net.apply(self.weights_init)
 
@@ -55,15 +56,15 @@ class DeepQNetwork:
                 torch.nn.init.zeros_(m.bias)
     # epsilon
     def choose_action_while_train(self, features):
-        #temp = self.choose_action(features)
+        temp = self.choose_action(features)
         if random.random() < self.epsilon: return random.randint(0, 2)
-        return self.choose_action(features) # replace temp to track all Q-values
+        return temp
     # greedy
     def choose_action(self, features):
         state = torch.tensor(features, dtype=torch.float32).to(self.device).unsqueeze(0)
-        q_values = self.policy_net(state)
-        if SHOW_SCREEN: logging(q_values)
-        with torch.no_grad(): return q_values.max(1)[1].item()
+        self.q_values = self.policy_net(state)
+        if SHOW_SCREEN: logging(self.q_values)
+        with torch.no_grad(): return self.q_values.max(1)[1].item()
 
     def learn(self):
         if len(self.memory) < 10000: return # 충분한 버퍼 체크
@@ -108,7 +109,7 @@ class DeepQNetwork:
 
 
 class DQN(nn.Module):
-    def __init__(self, input_dim=59, hidden_dim=256, num_actions=3):
+    def __init__(self, input_dim=207, hidden_dim=512, num_actions=3):
         super(DQN, self).__init__()
         self.fc1 = nn.Linear(input_dim, hidden_dim)
         self.fc2 = nn.Linear(hidden_dim, hidden_dim)

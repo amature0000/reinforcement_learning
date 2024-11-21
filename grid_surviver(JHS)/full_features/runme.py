@@ -1,9 +1,9 @@
 from knu_rl_env.grid_survivor import GridSurvivorAgent, make_grid_survivor, evaluate, run_manual
 import torch
-from agent import DeepQNetwork
+from agent import DeepQNetwork, logging
 from state import State, process_reward
 
-SHOW_SCREEN = True
+SHOW_SCREEN = False
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class GridSurvivorRLAgent(GridSurvivorAgent):
@@ -56,13 +56,13 @@ class GridSurvivorRLAgent(GridSurvivorAgent):
                     obs = next_obs
                 max_bee = min(max_bee, next_state.b)
                 print(f"{episode=}, {total_step=}, {current_step=}, {next_state.b=}, {self.agent.epsilon=:.2f}, {stupid=}, {max_bee=}")
+                logging(self.agent.q_values)
                 episode += 1
                 total_step += current_step
                 for _ in range(100): self.agent.learn()
                 self.save()
         except KeyboardInterrupt:
             print("Ctrl-C -> Exit")
-        finally:
             env.render()
             env.close()
             self.save()

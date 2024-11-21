@@ -31,10 +31,14 @@ class State:
                     elif char_map[y][x][1] == "R": self.pd = R
                     elif char_map[y][x][1] == "U": self.pd = U
                     elif char_map[y][x][1] == "D": self.pd = D
+                    self.upleft = types.index(char_map[y-1][x-1][0]) if y > 0 else -1
                     self.up = types.index(char_map[y-1][x][0]) if y > 0 else -1
-                    self.down = types.index(char_map[y+1][x][0]) if y < MAX_COR else -1
+                    self.upright = types.index(char_map[y-1][x+1][0]) if y > 0 else -1
                     self.left = types.index(char_map[y][x-1][0]) if x > 0 else -1
                     self.right = types.index(char_map[y][x+1][0]) if x < MAX_COR else -1
+                    self.down = types.index(char_map[y+1][x][0]) if y < MAX_COR else -1
+                    self.downleft = types.index(char_map[y+1][x-1][0]) if y < MAX_COR else -1
+                    self.downright = types.index(char_map[y+1][x+1][0]) if y < MAX_COR else -1
                 if char_map[y][x] == "B": b_cnt += 1
                 elif char_map[y][x] == "H": h_cnt += 1
                 elif char_map[y][x] == "K": k_cnt += 1
@@ -59,7 +63,7 @@ class State:
         self.ky, self.kx, self.k_dist = k1
         self.ky2, self.kx2, self.k_dist2 = k2
     def features(self):
-        # coordinate 14 + hp 1 + onehot_dir 4 + nearby blocks onehot 5*4 = 39
+        # coordinate 14 + hp 1 + onehot_dir 4 + nearby blocks onehot 5*8 = 59
         normalized_py = float(self.py) / (MAX_COR - 1)
         normalized_px = float(self.px) / (MAX_COR - 1)
 
@@ -81,14 +85,23 @@ class State:
         normalized_hp = float(self.hp) / 100
         pd_one_hot = np.zeros(4)
         up_one_hot = np.zeros(5)
+        upleft_one_hot = np.zeros(5)
+        upright_one_hot = np.zeros(5)
         down_one_hot = np.zeros(5)
+        downleft_one_hot = np.zeros(5)
+        downright_one_hot = np.zeros(5)
         left_one_hot = np.zeros(5)
         right_one_hot = np.zeros(5)
         pd_one_hot[self.pd] = 1.0
+
+        if self.upleft != -1: upleft_one_hot[self.upleft] = 1.0
         if self.up != -1: up_one_hot[self.up] = 1.0
-        if self.down != -1: down_one_hot[self.down] = 1.0
+        if self.upright != -1: upright_one_hot[self.upright] = 1.0
         if self.left != -1: left_one_hot[self.left] = 1.0
         if self.right != -1: right_one_hot[self.right] = 1.0
+        if self.downleft != -1: downleft_one_hot[self.downleft] = 1.0
+        if self.down != -1: down_one_hot[self.down] = 1.0
+        if self.downright != -1: downright_one_hot[self.downright] = 1.0
 
         result = [
             normalized_py,
@@ -106,7 +119,7 @@ class State:
             normalized_ky2,
             normalized_kx2,
             normalized_hp
-        ] + pd_one_hot.tolist() + up_one_hot.tolist() + down_one_hot.tolist() + left_one_hot.tolist() + right_one_hot.tolist()
+        ] + pd_one_hot.tolist() + upleft_one_hot.tolist() + up_one_hot.tolist() + upright_one_hot.tolist() + left_one_hot.tolist() + right_one_hot.tolist() + downleft_one_hot.tolist() + down_one_hot.tolist() + downright_one_hot.tolist()
         return result
 
 
