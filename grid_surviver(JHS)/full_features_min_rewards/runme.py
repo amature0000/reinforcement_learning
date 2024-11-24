@@ -76,6 +76,6 @@ if __name__ == "__main__":
     print(f"사용 중인 장치: {DEVICE}")
     # ===========================
     agent = GridSurvivorRLAgent()
-    agent.load()
-    #agent.train()
-    evaluate(agent)
+    #agent.load()
+    agent.train()
+    #evaluate(agent)
