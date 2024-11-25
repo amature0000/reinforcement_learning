@@ -16,5 +16,6 @@
 # Results
 ## Round 1
 ![images](etc_files/grid_adventure_score.png)
-## Round 2(미공개)
+## Round 2
+![images](etc_files/grid_surviver_score.PNG)
 ## Round 3(미공개)
