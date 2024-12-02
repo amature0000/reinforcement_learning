@@ -14,6 +14,7 @@
 또 다시 플레이어는 미로에 갇혔습니다! 이 미로에는 꿀벌들도 함께 갇혀버렸습니다. 플레이어는 말벌과 살인벌들을 피해서 이 꿀벌들을 모두 구해야합니다!
 ## Round 3(미공개)
 # Results
+### [result sheet](https://docs.google.com/spreadsheets/d/1ubyjUTA8REOA0wJz0lg1jNjxtiAS0l_HWs0vrxtx6WI)
 ## Round 1
 ![images](etc_files/grid_adventure_score.png)
 ## Round 2
