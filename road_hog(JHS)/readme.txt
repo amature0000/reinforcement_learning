@@ -4,5 +4,5 @@
 오브젝트간 충돌 판정 없음
 주차장 및 도로상의 노란차 위치 랜덤
 ==============================
-pip install knu-rl-env==1.8
+pip install knu-rl-env==1.9
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
