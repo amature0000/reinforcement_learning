@@ -1,17 +1,18 @@
 import numpy as np
 from knu_rl_env.road_hog import RoadHogAgent, make_road_hog, evaluate, run_manual
-from agent import PolicyGradientAgent
+from actorcritic import PolicyGradientAgent
 from state import process_reward, process_obs
 
 SC = True
 class RoadHogRLAgent(RoadHogAgent):
     def __init__(self):
         self.env = make_road_hog(show_screen=SC)
-        self.agent = PolicyGradientAgent(features=4+2 + 4*4)
+        max_near = 4
+        self.agent = PolicyGradientAgent(features=4 + 4 * max_near + 2)
 
     def act(self, obs):
         return self.agent.select_action(process_obs(obs), True)
-    def fit(self, obs):
+    def test(self, obs):
         return self.agent.select_action(obs)
     
     def save(self):
@@ -32,13 +33,17 @@ class RoadHogRLAgent(RoadHogAgent):
             state = process_obs(obs)
             rewards = 0
             while True:
-                action = self.fit(state)
-                obs, _, terminated, truncated, _ = self.env.step(action)
-                next_state = process_obs(obs)
-                reward, done = process_reward(obs)
-                self.store_reward(reward)
+                action = self.test(state)
+
+                next_obs, _, terminated, truncated, _ = self.env.step(action)
+                next_state = process_obs(next_obs)
+                reward, done = process_reward(obs, next_obs)
+                done = done or terminated or truncated
+
+                self.store_reward(reward, done)
+                
                 rewards += reward
-                if done or terminated or truncated: break
+                if done: break
                 state = next_state
             self.update_policy()
             print(f"{rewards=}")

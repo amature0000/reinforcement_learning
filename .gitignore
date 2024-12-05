@@ -1,5 +1,6 @@
 __pycache__/
 venv/
-save.pkl
-save.pth
-table.csv
+save.*
+**/save.*
+*.csv
+**/*.csv
