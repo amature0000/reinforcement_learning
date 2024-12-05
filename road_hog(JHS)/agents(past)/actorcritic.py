@@ -38,13 +38,13 @@ class CriticNetwork(nn.Module):
 class PolicyGradientAgent:
     def __init__(self, features, actions=9, gamma=0.9999, lr=0.001):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print(f"using : {self.device}")
+        print(f"device : {self.device}")
         
         self.actor = ActorNetwork(features, 512, actions).to(self.device)
         self.critic = CriticNetwork(features, 512).to(self.device)
         
         self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=lr)
-        self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=lr)
+        self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=lr*0.1)
         
         self.gamma = gamma  # Discount factor
         
@@ -101,9 +101,9 @@ class PolicyGradientAgent:
         
         # Actor 손실 계산: -log_prob * Advantage
         actor_loss = - (torch.stack(self.log_probs) * advantages.detach()).mean()
-        
         # Critic 손실 계산: MSE between predicted values and discounted rewards
         critic_loss = nn.functional.mse_loss(values, discounted_rewards)
+        print(f"{actor_loss=:.3f}, {critic_loss=:.3f}", end=" ")
         
         # Actor 업데이트
         self.actor_optimizer.zero_grad()

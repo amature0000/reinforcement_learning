@@ -1,19 +1,27 @@
 from math import degrees, acos
+import numpy as np
 import heapq
 
-# TODO: x좌표 따라 보상 주기
 def process_reward(obs, next_obs):
     done = False
-    # if no movement x: -0.01 (or zero?)
-    reward = -0.01
-    # if x moved right: positive
-    # if x moved left: negative
-    if obs["is_on_load"] == False or obs["is_crashed"] == True: 
+    x = obs["observation"][0][0]
+    p = next_obs["observation"][0]
+    next_x = p[0]
+    spd = abs(get_speed(p[4], p[5], p[2], p[3]))
+    # if x no movement
+    reward = -1.0
+    # if x moved
+    if x < next_x: reward = 0.02 * spd
+    elif x > next_x: reward = -0.02 * (20 - spd)
+    if next_obs["is_crashed"] == True:
+        reward += -1.0
+    if next_obs["is_on_load"] == False: 
         done = True
-        reward = -2.0
+        reward = -3.0
+    #print(x, next_x, reward)
+    #print(spd, end=" ")
     return reward, done
 
-# TODO: normalization
 def process_obs(obs, max_near=4):
     """
     state = [px, py, pd, ps,
@@ -38,19 +46,19 @@ def process_obs(obs, max_near=4):
     near_sorted = heapq.nsmallest(max_near, actual_near, key=distance) # sort non-padding list
     padding_count = max_near - len(near_sorted)
 
-    state = [
+    state = normalize_features([
         player[0], player[1], get_degree(player[5]), # px, py, pd
         get_speed(player[2], player[3], player[4], player[5]), # ps
-    ]
+    ])
     for obj in near_sorted:
-        state.extend([
+        state.extend(normalize_features([
             obj[0], obj[1], get_degree(obj[5]), # ox, oy, od
             get_speed(obj[2], obj[3], obj[4], obj[5])  # os
-        ])
+        ]))
     for _ in range(padding_count): state.extend([0, 0, 0, 0]) # padding
 
     state.extend([is_on_load, is_crashed])
-    return state
+    return np.array(state)
 
 def get_degree(cos_value):
     if cos_value >= 0: return degrees(acos(cos_value))
@@ -58,3 +66,10 @@ def get_degree(cos_value):
 
 def get_speed(cos_value, sin_value, vx, vy):
     return (vx * cos_value) + (vy * sin_value)
+
+def normalize_features(list):
+    list[0] = (list[0] + 250) / 330
+    list[1] = (list[1] + 70) / 140
+    list[2] = list[2] / 360
+    list[3] = list[3] / 40
+    return list
