@@ -4,22 +4,12 @@ import heapq
 
 def process_reward(obs, next_obs):
     done = False
-    x = obs["observation"][0][0]
-    p = next_obs["observation"][0]
-    next_x = p[0]
-    spd = abs(get_speed(p[4], p[5], p[2], p[3]))
-    # if x no movement
-    reward = -1.0
-    # if x moved
-    if x < next_x: reward = 0.02 * spd
-    elif x > next_x: reward = -0.02 * (20 - spd)
     if next_obs["is_crashed"] == True:
-        reward += -1.0
+        reward += -0.5
     if next_obs["is_on_load"] == False: 
         done = True
-        reward = -3.0
-    #print(x, next_x, reward)
-    #print(spd, end=" ")
+        reward = -1.0
+    # TODO: reached goal & checkpoint
     return reward, done
 
 def process_obs(obs, max_near=4):
@@ -28,21 +18,26 @@ def process_obs(obs, max_near=4):
             o1x, o1y, o1d, o1s,
             o2x, o2y, o2d, o2s,
             ...
+            gx, gy, gd, gs
             is_on_load, is_crashed
             ]
     max_near is [0, 9]
-    o is sorted
-    4 + 4n + 2 features (max=42)
+    o is sorted, goalspot removed.
+    4 + 4n + 4 + 2 features (max=46)
     """
     player = obs["observation"][0]
     near = obs["observation"][1:]
+    goal_spot = obs["goal_spot"]
     is_on_load = obs["is_on_load"]
     is_crashed = obs["is_crashed"]
 
     def is_padding(obj): return obj[0] == 0 and obj[1] == 0
     def distance(obj): return (obj[0] - player[0])**2 + (obj[1] - player[1])**2 # non squared l2 norm
-
-    actual_near = [obj for obj in near if not is_padding(obj)] # remove padding
+    def is_goal(obj, goal): return obj[0] == goal[0] and obj[1] == goal[1]
+    # TODO: actual_near을 생성할 때, goal_spot과 일치하는 행이 존재하는지 검사하고 존재한다면 마찬가지로 제거한다.
+    # goal_spot = [x, y, x_speed, y_speed, angle_x, angle_y]
+    # near = [[x, y, x_speed, y_speed, angle_x, angle_y], [x, y, x_speed, y_speed, angle_x, angle_y], ..., [x, y, x_speed, y_speed, angle_x, angle_y]]
+    actual_near = [obj for obj in near if not is_padding(obj) and not is_goal(obj, goal_spot)] # remove padding
     near_sorted = heapq.nsmallest(max_near, actual_near, key=distance) # sort non-padding list
     padding_count = max_near - len(near_sorted)
 
@@ -56,7 +51,10 @@ def process_obs(obs, max_near=4):
             get_speed(obj[2], obj[3], obj[4], obj[5])  # os
         ]))
     for _ in range(padding_count): state.extend([0, 0, 0, 0]) # padding
-
+    state.extend(normalize_features([
+        goal_spot[0], goal_spot[1], get_degree(goal_spot[5]), #gx, gy, gd
+        get_speed(goal_spot[2], goal_spot[3], goal_spot[4], goal_spot[5]) # gs
+    ]))
     state.extend([is_on_load, is_crashed])
     return np.array(state)
 

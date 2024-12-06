@@ -8,9 +8,9 @@ SC = True
 class RoadHogRLAgent(RoadHogAgent):
     def __init__(self):
         self.env = make_road_hog(show_screen=SC)
-        max_near = 4
+        self.max_near = 4
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.agent = PPOAgent(device = self.device, features=4 + 4 * max_near + 2)
+        self.agent = PPOAgent(device = self.device, features=4 + 4 * self.max_near + 4 + 2)
 
     # save&load
     def save(self):
@@ -27,7 +27,7 @@ class RoadHogRLAgent(RoadHogAgent):
         self.agent.learn()
 
     def act(self, obs):
-        return self.agent.choose_action(process_obs(obs), True)
+        return self.agent.choose_action(process_obs(obs, max_near=self.max_near), True)
     
     def test(self, state):
         return self.agent.choose_action(state)
@@ -37,14 +37,14 @@ class RoadHogRLAgent(RoadHogAgent):
         while True:
             self.save()
             obs, _ = self.env.reset()
-            state = process_obs(obs)
+            state = process_obs(obs, max_near=self.max_near)
             rewards = 0
             while True:
                 action = self.test(state)
                 next_obs, _, terminated, truncated, _ = self.env.step(action)
                 reward, done = process_reward(obs, next_obs)
                 #print(reward)
-                next_state = process_obs(next_obs)
+                next_state = process_obs(next_obs, max_near=self.max_near)
                 done = done or terminated or truncated
 
                 self.store(state, torch.tensor([[action]], device=self.device, dtype=torch.long), torch.tensor([reward], device=self.device), next_state, done)

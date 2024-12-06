@@ -30,7 +30,7 @@ class NN(nn.Module):
         return x
     
 class PPOAgent:
-    def __init__(self, device, features, actions=9, epsilon=0.2, epsilon_decay=0.8, epsilon_min=0.05, gamma=0.7, lr=0.0001, batch=128, memsize=1000):
+    def __init__(self, device, features, actions=9, epsilon=0.2, epsilon_decay=0.8, epsilon_min=0.05, gamma=0.9999, lr=0.0001, batch=128, memsize=1000):
         self.device = device
         self.features = features
         print(f"device : {self.device}")
