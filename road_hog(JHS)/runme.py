@@ -42,10 +42,9 @@ class RoadHogRLAgent(RoadHogAgent):
             while True:
                 action = self.test(state)
                 next_obs, _, terminated, truncated, _ = self.env.step(action)
-                reward, done = process_reward(obs, next_obs)
-                #print(reward)
+                reward = process_reward(next_obs, terminated)
                 next_state = process_obs(next_obs, max_near=self.max_near)
-                done = done or terminated or truncated
+                done = terminated or truncated
 
                 self.store(state, torch.tensor([[action]], device=self.device, dtype=torch.long), torch.tensor([reward], device=self.device), next_state, done)
                 rewards += reward
@@ -56,7 +55,7 @@ class RoadHogRLAgent(RoadHogAgent):
                 if done: break
                 obs = next_obs
                 state = next_state
-            print(f"{episode=} {rewards=:.3f}")
+            print(f"{episode=} {rewards=}")
             episode += 1
 
 if __name__ == '__main__':

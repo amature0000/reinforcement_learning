@@ -2,15 +2,16 @@ from math import degrees, acos
 import numpy as np
 import heapq
 
-def process_reward(obs, next_obs):
-    done = False
-    if next_obs["is_crashed"] == True:
-        reward += -0.5
-    if next_obs["is_on_load"] == False: 
-        done = True
-        reward = -1.0
-    # TODO: reached goal & checkpoint
-    return reward, done
+def process_reward(next_obs, terminated): # asserted "terminated" as "goal reached"
+    reward = 0
+    p = next_obs["observation"][0]
+    speed = abs(get_speed(p[4], p[5], p[2], p[3]))
+    # =====
+    if speed == 0: reward = -0.1
+    if next_obs["is_crashed"] == True: reward = -0.1
+    if next_obs["is_on_load"] == False:  reward = -0.2
+    if terminated: reward = 10.0
+    return reward
 
 def process_obs(obs, max_near=4):
     """
@@ -32,20 +33,18 @@ def process_obs(obs, max_near=4):
     is_crashed = obs["is_crashed"]
 
     def is_padding(obj): return obj[0] == 0 and obj[1] == 0
-    def distance(obj): return (obj[0] - player[0])**2 + (obj[1] - player[1])**2 # non squared l2 norm
     def is_goal(obj, goal): return obj[0] == goal[0] and obj[1] == goal[1]
-    # TODO: actual_near을 생성할 때, goal_spot과 일치하는 행이 존재하는지 검사하고 존재한다면 마찬가지로 제거한다.
-    # goal_spot = [x, y, x_speed, y_speed, angle_x, angle_y]
-    # near = [[x, y, x_speed, y_speed, angle_x, angle_y], [x, y, x_speed, y_speed, angle_x, angle_y], ..., [x, y, x_speed, y_speed, angle_x, angle_y]]
-    actual_near = [obj for obj in near if not is_padding(obj) and not is_goal(obj, goal_spot)] # remove padding
-    near_sorted = heapq.nsmallest(max_near, actual_near, key=distance) # sort non-padding list
-    padding_count = max_near - len(near_sorted)
+    def distance(obj): return (obj[0] - player[0])**2 + (obj[1] - player[1])**2 # squared l2 norm
+
+    actual_near = [obj for obj in near if not is_padding(obj) and not is_goal(obj, goal_spot)]
+    actual_near_sorted = heapq.nsmallest(max_near, actual_near, key=distance)
+    padding_count = max_near - len(actual_near_sorted)
 
     state = normalize_features([
         player[0], player[1], get_degree(player[5]), # px, py, pd
         get_speed(player[2], player[3], player[4], player[5]), # ps
     ])
-    for obj in near_sorted:
+    for obj in actual_near_sorted:
         state.extend(normalize_features([
             obj[0], obj[1], get_degree(obj[5]), # ox, oy, od
             get_speed(obj[2], obj[3], obj[4], obj[5])  # os
