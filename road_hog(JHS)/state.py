@@ -2,7 +2,7 @@ from math import degrees, acos
 import numpy as np
 import heapq
 
-def process_reward(next_obs, terminated): # asserted "terminated" as "goal reached"
+def process_reward(next_obs, terminated, truncated): # asserted "terminated" as "goal reached"
     reward = 0
     p = next_obs["observation"][0]
     speed = abs(get_speed(p[4], p[5], p[2], p[3]))
@@ -11,6 +11,7 @@ def process_reward(next_obs, terminated): # asserted "terminated" as "goal reach
     if next_obs["is_crashed"] == True: reward = -0.1
     if next_obs["is_on_load"] == False:  reward = -0.2
     if terminated: reward = 10.0
+    if truncated: reward = -10.0
     return reward
 
 def process_obs(obs, max_near=4):

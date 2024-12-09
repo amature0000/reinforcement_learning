@@ -7,6 +7,16 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from collections import deque, namedtuple
+from colorama import Fore
+
+SC = True
+def print_probs(probs):
+    prob_list = probs.cpu().tolist()
+    max_index = prob_list.index(max(prob_list))
+    for i in range(9):
+        if i == max_index: print(Fore.RED + f"{prob_list[i]:.3f}" + Fore.RESET, end=' ')
+        else: print(f"{prob_list[i]:.3f}", end=' ')
+    print()
 
 class NN(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
@@ -24,8 +34,8 @@ class NN(nn.Module):
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         x = F.relu(self.fc4(x))
-        x = F.relu(self.fc5(x))
-        x = F.relu(self.fc6(x))
+        #x = F.relu(self.fc5(x))
+        #x = F.relu(self.fc6(x))
         x = self.fc7(x)
         return x
     
@@ -44,8 +54,8 @@ class PPOAgent:
         self.lr = lr
         self.batch_size = batch
 
-        self.actor = NN(features, 1024,actions).to(self.device)
-        self.critic = NN(features, 1024,1).to(self.device)
+        self.actor = NN(features, 1024, actions).to(self.device)
+        self.critic = NN(features, 1024, 1).to(self.device)
 
         self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=self.lr)
         self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=self.lr)
@@ -61,6 +71,7 @@ class PPOAgent:
                 action = torch.argmax(logits)
             else: 
                 probs = F.softmax(logits, dim=-1)
+                print_probs(probs)
                 action = torch.multinomial(probs, num_samples=1).item()
                 self.log_prob = torch.log(probs[action])
         return action

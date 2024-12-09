@@ -42,7 +42,7 @@ class RoadHogRLAgent(RoadHogAgent):
             while True:
                 action = self.test(state)
                 next_obs, _, terminated, truncated, _ = self.env.step(action)
-                reward = process_reward(next_obs, terminated)
+                reward = process_reward(next_obs, terminated, truncated)
                 next_state = process_obs(next_obs, max_near=self.max_near)
                 done = terminated or truncated
 
