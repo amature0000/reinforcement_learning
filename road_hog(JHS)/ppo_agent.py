@@ -7,16 +7,17 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from collections import deque, namedtuple
-from colorama import Fore
+from colorama import Fore, Back
 
 SC = True
-def print_probs(probs):
+def print_probs(probs, selected):
     prob_list = probs.cpu().tolist()
     max_index = prob_list.index(max(prob_list))
     for i in range(9):
-        if i == max_index: print(Fore.RED + f"{prob_list[i]:.3f}" + Fore.RESET, end=' ')
-        else: print(f"{prob_list[i]:.3f}", end=' ')
-    print()
+        if i == max_index: print(Fore.RED, end='')
+        if i == selected: print(Back.GREEN, end='')
+        print(f"{prob_list[i]:.3f}" + Fore.RESET + Back.RESET, end=" ")
+    #print()
 
 class NN(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
@@ -40,7 +41,7 @@ class NN(nn.Module):
         return x
     
 class PPOAgent:
-    def __init__(self, device, features, actions=9, epsilon=0.2, epsilon_decay=0.8, epsilon_min=0.05, gamma=0.9999, lr=0.0001, batch=128, memsize=1000):
+    def __init__(self, device, features, actions=9, epsilon=0.2, epsilon_decay=0.8, epsilon_min=0.05, gamma=0.4, lr=0.0001, batch=128, memsize=1000):
         self.device = device
         self.features = features
         print(f"device : {self.device}")
@@ -71,9 +72,9 @@ class PPOAgent:
                 action = torch.argmax(logits)
             else: 
                 probs = F.softmax(logits, dim=-1)
-                print_probs(probs)
                 action = torch.multinomial(probs, num_samples=1).item()
                 self.log_prob = torch.log(probs[action])
+                print_probs(probs, action)
         return action
     
     def store(self, state, action, prob, reward, next_state, done):

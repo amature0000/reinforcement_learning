@@ -1,20 +1,25 @@
 from math import degrees, acos
 import numpy as np
 import heapq
+GOAL_SPOT = None
 
-def process_reward(next_obs, terminated, truncated): # asserted "terminated" as "goal reached"
+def process_reward(obs, next_obs, terminated, truncated): # asserted "terminated" as "goal reached"
+    global GOAL_SPOT
     reward = 0
     p = next_obs["observation"][0]
     speed = abs(get_speed(p[4], p[5], p[2], p[3]))
     # =====
-    if speed == 0: reward = -0.1
-    if next_obs["is_crashed"] == True: reward = -0.1
-    if next_obs["is_on_load"] == False:  reward = -0.2
+    if p[0] > obs["observation"][0][0] and p[0] <= GOAL_SPOT[0]: reward = 1.0 
+    # -----
+    if speed == 0: reward = -1.0
+    if next_obs["is_crashed"] == True: reward += -0.5
+    if next_obs["is_on_load"] == False: reward += -1.0
     if terminated: reward = 10.0
     if truncated: reward = -10.0
     return reward
 
 def process_obs(obs, max_near=4):
+    global GOAL_SPOT
     """
     state = [px, py, pd, ps,
             o1x, o1y, o1d, o1s,
@@ -29,7 +34,7 @@ def process_obs(obs, max_near=4):
     """
     player = obs["observation"][0]
     near = obs["observation"][1:]
-    goal_spot = obs["goal_spot"]
+    GOAL_SPOT = obs["goal_spot"]
     is_on_load = obs["is_on_load"]
     is_crashed = obs["is_crashed"]
 
@@ -37,7 +42,7 @@ def process_obs(obs, max_near=4):
     def is_goal(obj, goal): return obj[0] == goal[0] and obj[1] == goal[1]
     def distance(obj): return (obj[0] - player[0])**2 + (obj[1] - player[1])**2 # squared l2 norm
 
-    actual_near = [obj for obj in near if not is_padding(obj) and not is_goal(obj, goal_spot)]
+    actual_near = [obj for obj in near if not is_padding(obj) and not is_goal(obj, GOAL_SPOT)]
     actual_near_sorted = heapq.nsmallest(max_near, actual_near, key=distance)
     padding_count = max_near - len(actual_near_sorted)
 
@@ -52,8 +57,8 @@ def process_obs(obs, max_near=4):
         ]))
     for _ in range(padding_count): state.extend([0, 0, 0, 0]) # padding
     state.extend(normalize_features([
-        goal_spot[0], goal_spot[1], get_degree(goal_spot[5]), #gx, gy, gd
-        get_speed(goal_spot[2], goal_spot[3], goal_spot[4], goal_spot[5]) # gs
+        GOAL_SPOT[0], GOAL_SPOT[1], get_degree(GOAL_SPOT[5]), #gx, gy, gd
+        get_speed(GOAL_SPOT[2], GOAL_SPOT[3], GOAL_SPOT[4], GOAL_SPOT[5]) # gs
     ]))
     state.extend([is_on_load, is_crashed])
     return np.array(state)

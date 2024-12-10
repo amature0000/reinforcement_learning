@@ -42,12 +42,16 @@ class RoadHogRLAgent(RoadHogAgent):
             while True:
                 action = self.test(state)
                 next_obs, _, terminated, truncated, _ = self.env.step(action)
-                reward = process_reward(next_obs, terminated, truncated)
+                reward = process_reward(obs, next_obs, terminated, truncated)
+                print(f", {reward=}")
                 next_state = process_obs(next_obs, max_near=self.max_near)
                 done = terminated or truncated
+                rewards += reward
+                if rewards <= -30: # early truncation
+                    done = True 
+                    reward = -10.0
 
                 self.store(state, torch.tensor([[action]], device=self.device, dtype=torch.long), torch.tensor([reward], device=self.device), next_state, done)
-                rewards += reward
 
                 if len(self.agent.memory) >= UPDATE_INTERVAL: 
                     print("learn")
