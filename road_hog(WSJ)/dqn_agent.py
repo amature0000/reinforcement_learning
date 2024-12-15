@@ -8,17 +8,17 @@ import torch.optim as optim
 
 from collections import deque, namedtuple
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = "cpu" #torch.device("cuda" if torch.cuda.is_available() else "cpu")
 dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
 BATCH_SIZE = 128
 EPSILON_START = 1.0
 EPSILON_DECAY = 0.97
-EPSILON_MIN = 0.02
+EPSILON_MIN = 0.01
 LEARNING_RATE = 1e-5
 TARGET_UPDATE = 100
 DISCOUNT_FACTOR = 0.99
-MEMORY_SIZE = 30000
+MEMORY_SIZE = 50000
 
 ob_size = 17
 ac_size = 9
@@ -95,6 +95,9 @@ class DQNAgent:
             if m.bias is not None:
                 torch.nn.init.zeros_(m.bias)
 
+    def evaluate(self, state):
+        with torch.no_grad():
+            return self.policy_net(torch.from_numpy(state).float().to(device).unsqueeze(0)).max(1)[1].view(1, 1)
 
     def choose_action(self, state):
         if random.random() > self.epsilon: # follow policy
@@ -113,7 +116,7 @@ class DQNAgent:
         batch = Transition(*zip(*transitions))
 
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), device=device, dtype=torch.bool)
-        non_final_next_states = torch.cat([s for s in batch.next_state if s is not None]).view(self.batch_size, self.n_features).to(device)
+        non_final_next_states = torch.cat([s for s in batch.next_state if s is not None]).view(self.batch_size, self.n_features)
 
         batch_s = torch.cat(batch.state).view(-1, self.n_features).to(device)
         batch_a = torch.cat(batch.action).long().to(device)
@@ -149,7 +152,6 @@ class DQNAgent:
             if self.epsilon == self.epsilon_min:
                 self.lr = max(self.lr * 0.99, 1e-7)
 
+
     def store_transition(self, s, a, r, s_):
-        state = torch.from_numpy(s).float().to(device)
-        next_state = torch.from_numpy(s_).float().to(device) if s_ is not None else None
-        self.memory.push(state, a, r, next_state)
+        self.memory.push(torch.from_numpy(s).float(), a, r, torch.from_numpy(s_).float())

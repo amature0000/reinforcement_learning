@@ -6,7 +6,7 @@ import numpy as np
 import math
 
 UPDATE_INTERVAL = 10
-SC = False
+SC = True
 
 def check_intersection(a, b, c, d, max_distance=60.0):
     x1, y1 = a
@@ -149,7 +149,7 @@ class Agent:
         print(f"Model saved as {model_filename}")
 
     def load_model(self, model):
-        self.DQN.epsilon = 0.0
+        self.DQN.epsilon = 0.1
         self.DQN.policy_net.load_state_dict(torch.load(model))
     
     def train(self):
@@ -223,11 +223,10 @@ class Agent:
 
 # Main
 if __name__ == "__main__":
-    print(device)
     agent = Agent()
-    agent.train()
-    #agent.load_model("model_0.pth")
-    #evaluate(agent)
+    # agent.train()
+    agent.load_model("model_0.pth")
+    evaluate(agent)
 
 
 # -202, 0
