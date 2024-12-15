@@ -24,7 +24,7 @@ def get_reward(obs, obs_, done):
     reward = 0
     
     if obs_["is_crashed"]:
-        reward += -0.09
+        reward += -0.01
     if not obs_["is_on_load"]:
         reward += -1
     if get_speed(player) < 4:
