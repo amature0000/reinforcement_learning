@@ -28,20 +28,22 @@ class NN(nn.Module):
         self.fc4 = nn.Linear(hidden_dim, hidden_dim)
         self.fc5 = nn.Linear(hidden_dim, hidden_dim)
         self.fc6 = nn.Linear(hidden_dim, hidden_dim)
-        self.fc7 = nn.Linear(hidden_dim, output_dim)
+        self.fc7 = nn.Linear(hidden_dim, hidden_dim)
+        self.fc8 = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         x = F.relu(self.fc4(x))
-        #x = F.relu(self.fc5(x))
-        #x = F.relu(self.fc6(x))
-        x = self.fc7(x)
+        x = F.relu(self.fc5(x))
+        x = F.relu(self.fc6(x))
+        x = F.relu(self.fc7(x))
+        x = self.fc8(x)
         return x
     
 class PPOAgent:
-    def __init__(self, device, features, actions=9, epsilon=0.2, epsilon_decay=0.8, epsilon_min=0.05, gamma=0.4, lr=0.0001, batch=128, memsize=1000):
+    def __init__(self, device, features, actions=9, epsilon=0.2, epsilon_decay=0.8, epsilon_min=0.05, gamma=0.5, lr=1e-6, batch=128, memsize=1000):
         self.device = device
         self.features = features
         print(f"device : {self.device}")
@@ -74,7 +76,7 @@ class PPOAgent:
                 probs = F.softmax(logits, dim=-1)
                 action = torch.multinomial(probs, num_samples=1).item()
                 self.log_prob = torch.log(probs[action])
-                print_probs(probs, action)
+                if SC: print_probs(probs, action)
         return action
     
     def store(self, state, action, prob, reward, next_state, done):

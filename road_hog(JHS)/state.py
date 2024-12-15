@@ -3,7 +3,7 @@ import numpy as np
 import heapq
 GOAL_SPOT = None
 
-def process_reward(obs, next_obs, terminated, truncated): # asserted "terminated" as "goal reached"
+def process_reward(obs, next_obs, terminated): # asserted "terminated" as "goal reached"
     global GOAL_SPOT
     reward = 0
     p = next_obs["observation"][0]
@@ -12,10 +12,9 @@ def process_reward(obs, next_obs, terminated, truncated): # asserted "terminated
     if p[0] > obs["observation"][0][0] and p[0] <= GOAL_SPOT[0]: reward = 1.0 
     # -----
     if speed == 0: reward = -1.0
-    if next_obs["is_crashed"] == True: reward += -0.5
-    if next_obs["is_on_load"] == False: reward += -1.0
+    if next_obs["is_crashed"] == True: reward += -0.05
+    if next_obs["is_on_load"] == False: reward += -1.5
     if terminated: reward = 10.0
-    if truncated: reward = -10.0
     return reward
 
 def process_obs(obs, max_near=4):

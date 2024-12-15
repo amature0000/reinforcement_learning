@@ -4,11 +4,11 @@ from ppo_agent import PPOAgent
 from state import process_reward, process_obs
 
 UPDATE_INTERVAL = 128
-SC = True
+SC = False
 class RoadHogRLAgent(RoadHogAgent):
     def __init__(self):
         self.env = make_road_hog(show_screen=SC)
-        self.max_near = 4
+        self.max_near = 7
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.agent = PPOAgent(device = self.device, features=4 + 4 * self.max_near + 4 + 2)
 
@@ -42,14 +42,13 @@ class RoadHogRLAgent(RoadHogAgent):
             while True:
                 action = self.test(state)
                 next_obs, _, terminated, truncated, _ = self.env.step(action)
-                reward = process_reward(obs, next_obs, terminated, truncated)
+                reward = process_reward(obs, next_obs, terminated)
                 print(f", {reward=}")
                 next_state = process_obs(next_obs, max_near=self.max_near)
                 done = terminated or truncated
                 rewards += reward
                 if rewards <= -30: # early truncation
-                    done = True 
-                    reward = -10.0
+                    done = True
 
                 self.store(state, torch.tensor([[action]], device=self.device, dtype=torch.long), torch.tensor([reward], device=self.device), next_state, done)
 
