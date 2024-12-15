@@ -22,11 +22,6 @@ class Agent:
         torch.save(self.DQN_a.policy_net.state_dict(), "model_a.pth")
         torch.save(self.DQN_b.policy_net.state_dict(), "model_b.pth")
         print("save")
-
-    def load_model(self):
-        self.DQN_a.policy_net.load_state_dict(torch.load("model_a.pth"))
-        self.DQN_b.policy_net.load_state_dict(torch.load("model_b.pth"))
-        print("load")
     
     def train(self):
         cur_ep = 0
@@ -65,19 +60,24 @@ class Agent:
                 else:
                     self.DQN_b.store_transition(state, torch.tensor([[ACTION_SPACE_REVERSE[action]]], device=device, dtype=torch.long), reward, state_)
 
+                a_update = False
+                b_update = False
+
                 if len(self.DQN_a.memory) >= 2000 and cur_step % UPDATE_INTERVAL == 0:
                     self.DQN_a.learn()
                     print("DQN-A")
                     print("loss : ", self.DQN_a.loss.item())
                     print("epsilon : ", self.DQN_a.epsilon)
-                    self.save_model()
+                    a_update = True
 
                 if len(self.DQN_b.memory) >= 2000 and cur_step % UPDATE_INTERVAL == 0:
                     self.DQN_b.learn()
                     print("DQN-B")
                     print("loss : ", self.DQN_b.loss.item())
                     print("epsilon : ", self.DQN_b.epsilon)
-                    self.save_model()
+                    b_update = True
+                
+                if a_update and b_update: self.save_model()
 
                 if done or truncated:
                     best = max(best, total_reward)

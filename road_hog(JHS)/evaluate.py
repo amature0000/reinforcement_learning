@@ -19,8 +19,8 @@ class Agent:
         return ACTION_SPACE[self.DQN_b.evaluate(state)]
     
     def load_model(self):
-        self.DQN_a.policy_net.load_state_dict(torch.load("model_a.pth"))
-        self.DQN_b.policy_net.load_state_dict(torch.load("model_b.pth"))
+        self.DQN_a.policy_net.load_state_dict(torch.load("model_a.pth", map_location=device))
+        self.DQN_b.policy_net.load_state_dict(torch.load("model_b.pth", map_location=device))
         print("load")
     
 # Main
