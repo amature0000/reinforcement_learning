@@ -225,9 +225,9 @@ class Agent:
 if __name__ == "__main__":
     print(device)
     agent = Agent()
-    #agent.train()
-    agent.load_model("model_0.pth")
-    evaluate(agent)
+    agent.train()
+    #agent.load_model("model_0.pth")
+    #evaluate(agent)
 
 
 # -202, 0

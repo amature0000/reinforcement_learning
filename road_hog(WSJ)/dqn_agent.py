@@ -99,7 +99,7 @@ class DQNAgent:
     def choose_action(self, state):
         if random.random() > self.epsilon: # follow policy
             with torch.no_grad():
-                action = self.policy_net(torch.from_numpy(state).type(dtype).unsqueeze(0)).max(1)[1].view(1, 1)
+                action = self.policy_net(torch.from_numpy(state).float().to(device).unsqueeze(0)).max(1)[1].view(1, 1)
         else:
             action = torch.tensor([[random.randrange(self.n_actions)]], device=device, dtype=torch.long)
 
@@ -149,6 +149,7 @@ class DQNAgent:
             if self.epsilon == self.epsilon_min:
                 self.lr = max(self.lr * 0.99, 1e-7)
 
-
     def store_transition(self, s, a, r, s_):
-        self.memory.push(torch.from_numpy(s).float(), a, r, torch.from_numpy(s_).float())
+        state = torch.from_numpy(s).float().to(device)
+        next_state = torch.from_numpy(s_).float().to(device) if s_ is not None else None
+        self.memory.push(state, a, r, next_state)
