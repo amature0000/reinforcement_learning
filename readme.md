@@ -22,4 +22,6 @@
 ![images](etc_files/grid_adventure_score.png)
 ## Round 2
 ![images](etc_files/grid_surviver_score.PNG)
-## Round 3(미공개)
+## Round 3
+![images](etc_files/road_hog_score.PNG)
+
