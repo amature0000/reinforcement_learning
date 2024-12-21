@@ -1,8 +1,6 @@
 # Reinforcement Learning
-### team icn
-신승원, 지우성, 주현수
 ### introduction
-2024-2학기 인공지능 강의, 팀 프로젝트
+2024-2학기 인공지능 강의, 팀 프로젝트, team ICN
 # Objective
 ## Round 1: [grid adventure!](https://docs.google.com/document/d/1DMapV7a4Rdw6Izys0AC_niAnsCbWH_ue6llX_sjVBc8/edit?tab=t.0)
 ![images](etc_files/grid_adventure.png)
